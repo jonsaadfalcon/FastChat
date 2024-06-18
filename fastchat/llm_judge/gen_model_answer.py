@@ -151,6 +151,7 @@ def get_model_answers(
             torch.manual_seed(i)
             conv = get_conversation_template(model_id)
             turns = []
+            turn_instruction = []
             for j in range(len(question["turns"])):
 
                 if model_type == "local":
@@ -222,6 +223,7 @@ def get_model_answers(
 
                     conv.update_last_message(output)
                     turns.append(output)
+                    turn_instruction.append(qs)
 
                 ##########################################
 
@@ -248,6 +250,7 @@ def get_model_answers(
                     
                     conv.update_last_message(output)
                     turns.append(output)
+                    turn_instruction.append(qs)
 
                 else:
 
@@ -266,6 +269,7 @@ def get_model_answers(
                 "model_id": model_id,
                 "choices": choices,
                 "tstamp": time.time(),
+                "turn_instruction": turn_instruction,
             }
             fout.write(json.dumps(ans_json) + "\n")
 
