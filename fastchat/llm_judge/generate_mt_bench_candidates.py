@@ -139,6 +139,7 @@ else:
     for model_name in models:
         model_id = model_name.split("/")[1]
         saved_jsonl_path = f"data/mt_bench/model_answer/{model_id}.jsonl"
+        breakpoint()
         dataset = pd.read_json(saved_jsonl_path, lines=True)
         total_datasets.append(dataset)
 
