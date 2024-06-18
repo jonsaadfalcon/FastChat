@@ -25,17 +25,25 @@ from together import Together
 def generate_candidates_with_together_api(instruction:str, 
                                           model: str, 
                                           temperature: float,
-                                          previous_turns: List[str] = []):
+                                          previous_turns: dict = None):
     
     client = Together(api_key=os.environ.get("TOGETHER_API_KEY"))
 
     system_prompt = "You are an expert chatbot, capable of instruction-following and question-answering. You are tasked with following the given instruction for the provided input."
-    user_prompt = "Instruction: " + (instruction).strip() + "\nAnswer:"
+    user_prompt = instruction
 
     ###################################
 
-    messages = [{"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}]
+    if previous_turns is None:
+        messages = [{"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}]
+    else:
+        messages = [{"role": "system", "content": system_prompt},
+                    {"role": "user", "content": previous_turns["first_instruction"]},
+                    {"role": "system", "content": previous_turns["system_response"]},
+                    {"role": "user", "content": user_prompt}]
+        
+    print("Messages: ", messages)
 
     response = client.chat.completions.create(
                 model=model,
@@ -225,15 +233,18 @@ def get_model_answers(
                     prompt = conv.get_prompt()
                     #input_ids = tokenizer([prompt]).input_ids
 
+                    previous_turns = None
                     if j == 1:
-                        breakpoint()
+                        #breakpoint()
+                        previous_turns = {"first_instruction": conv.messages[0][1], 
+                                          "system_response": conv.messages[1][1]}
 
                     output = generate_candidates_with_together_api(instruction=qs,
                                                                    model=model_path,
                                                                    temperature=temperature,
-                                                                   previous_turns=turns)
+                                                                   previous_turns=previous_turns)
                     
-                    breakpoint()
+                    #breakpoint()
                     
                     conv.update_last_message(output)
                     turns.append(output)
