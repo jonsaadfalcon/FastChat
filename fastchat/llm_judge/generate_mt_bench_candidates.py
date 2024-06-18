@@ -74,6 +74,7 @@ for model_name in models:
 
     judgement_command = f"python gen_judgment.py --model-list {model_name} --parallel 2"
     #judgement_result = subprocess.run(judgement_command, shell=True, capture_output=True, text=True)
+    print("Generating judgements...")
     with subprocess.Popen(judgement_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
         for line in process.stdout:
             print(line, end='')  # Print the output in real-time
