@@ -39,8 +39,9 @@ models = ["Qwen/Qwen1.5-72B-Chat", "Qwen/Qwen1.5-110B-Chat", "microsoft/WizardLM
           "mistralai/Mixtral-8x22B-Instruct-v0.1", "meta-llama/Llama-3-70b-chat-hf", "databricks/dbrx-instruct"]
 MoA_models = models
 
-models = ["Qwen/Qwen1.5-72B-Chat", "Qwen/Qwen1.5-72B-Chat_v2"]
+#models = ["Qwen/Qwen1.5-72B-Chat", "Qwen/Qwen1.5-72B-Chat_v2"]
 #models = ["Qwen/Qwen1.5-72B-Chat"]
+models = ["mistralai/Mixtral-8x22B-Instruct-v0.1"]
 
 
 # Generation Settings
@@ -57,7 +58,7 @@ generation_dict = {
 #################################################
 
 # Ensembling Parameters
-perform_ensembling = True
+perform_ensembling = False
 ranker_config = {
     "ranker_checkpoint": "llm-blender/PairRM",
 
