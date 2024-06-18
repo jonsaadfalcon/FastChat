@@ -54,41 +54,89 @@ generation_dict = {
 
 #################################################
 
-for model_name in models:
+# Ensembling Parameters
+perform_ensembling = False
+ranker_config = {
+    "ranker_checkpoint": "llm-blender/PairRM",
 
-    print(f"Generating candidates for model: {model_name}")
+    "ranker_model": "microsoft/deberta-v3-large",
+    "ranker_max_length": 1024, #512, 1024
+    "ranker_batch_size": 16, #32
+    "source_max_length": 256, # 128, 256
+    "candidate_max_length": 256, # 128, 256
+    "device": "cuda:0"
+}
+
+#################################################
+
+if not perform_ensembling:
     
-    model_id = model_name.split("/")[1]
-    candidate_generation_command = f"python gen_model_answer.py --model-path {model_name} --model-id {model_id} --model-type TogetherAI --num-choices {generation_dict['candidates_per_temp'][0]}"
+    for model_name in models:
 
-    print("Generation Command: ", candidate_generation_command)
-    print("Generating candidates...")
-    #generation_result = subprocess.run(candidate_generation_command, shell=True, capture_output=True, text=True)
-    with subprocess.Popen(candidate_generation_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
-        for line in process.stdout:
-            print(line, end='')  # Print the output in real-time
-    breakpoint()
+        print(f"Generating candidates for model: {model_name}")
+        
+        model_id = model_name.split("/")[1]
+        saved_jsonl_path = f"data/mt_bench/model_answer/{model_id}.jsonl"
+        if not os.path.exists(saved_jsonl_path):
+            candidate_generation_command = f"python gen_model_answer.py --model-path {model_name} --model-id {model_id} --model-type TogetherAI --num-choices {generation_dict['candidates_per_temp'][0]}"
 
-    saved_jsonl_path = f"data/mt_bench/model_answer/{model_id}.jsonl"
+            print("Generation Command: ", candidate_generation_command)
+            print("Generating candidates...")
+            #generation_result = subprocess.run(candidate_generation_command, shell=True, capture_output=True, text=True)
+            with subprocess.Popen(candidate_generation_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+                for line in process.stdout:
+                    print(line, end='')  # Print the output in real-time
+            breakpoint()
 
-    ##########################################
+        else:
+            print(f"Model {model_name} already has candidates generated. Already saved to: {saved_jsonl_path}")
 
-    judgement_command = f"python gen_judgment.py --model-list {model_name} --parallel 2"
-    print("Generating judgements...")
-    judgement_result = subprocess.run(judgement_command, shell=True, capture_output=True, text=True)
-    breakpoint()
-    #with subprocess.Popen(judgement_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
-    #    for line in process.stdout:
-    #        print(line, end='')  # Print the output in real-time
+        saved_jsonl_path = f"data/mt_bench/model_answer/{model_id}.jsonl"
 
-    ##########################################
+        ##########################################
 
-    show_results_command = f"python show_result.py --model-list {model_name}"
-    print("Showing results...")
-    show_results_result = subprocess.run(show_results_command, shell=True, capture_output=True, text=True)
-    breakpoint()
-    #with subprocess.Popen(show_results_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
-    #    for line in process.stdout:
-    #        print(line, end='')  # Print the output in real-time
+        judgement_command = f"python gen_judgment.py --model-list {model_name} --parallel 2"
+        print("Generating judgements...")
+        judgement_result = subprocess.run(judgement_command, shell=True, capture_output=True, text=True)
+        breakpoint()
+        #with subprocess.Popen(judgement_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+        #    for line in process.stdout:
+        #        print(line, end='')  # Print the output in real-time
+
+        ##########################################
+
+        show_results_command = f"python show_result.py --model-list {model_name}"
+        print("Showing results...")
+        show_results_result = subprocess.run(show_results_command, shell=True, capture_output=True, text=True)
+        breakpoint()
+        #with subprocess.Popen(show_results_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+        #    for line in process.stdout:
+        #        print(line, end='')  # Print the output in real-time
+
+else:
+
+    # Check if dataset already exists
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    final_dataset_path = f"data/mt_bench/model_answer/ensemble_{timestamp}.jsonl"
+
+    #################################################
+
+    # Load datasets
+    total_datasets = []
+    for model_name in models:
+        model_id = model_name.split("/")[1]
+        saved_jsonl_path = f"data/mt_bench/model_answer/{model_id}.jsonl"
+        dataset = pd.read_json(saved_jsonl_path, lines=True)
+        total_datasets.append(dataset)
+
+    #################################################
+
+    # Gather all the candidates
+    first_turn_candidates = []
+    second_turn_candidates = []
+    
+    assert len(total_datasets) == len(models) and len(total_datasets[0]) == len(total_datasets[1])
+    for row_idx in range(len(total_datasets[0])):
+        current_outputs = []
 
 
