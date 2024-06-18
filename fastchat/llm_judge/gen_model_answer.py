@@ -17,6 +17,56 @@ from fastchat.llm_judge.common import load_questions, temperature_config
 from fastchat.model import load_model, get_conversation_template
 from fastchat.utils import str_to_torch_dtype
 
+from typing import List
+from together import Together
+
+##################################################
+
+def generate_candidates_with_together_api(instructions:List[str], 
+                                          inputs: List[str], 
+                                          model: str, 
+                                          generation_dict: dict):
+    
+    assert type(generation_dict['candidates_per_temp']) == list and len(generation_dict['candidates_per_temp']) == 1
+    assert type(generation_dict['temperatures']) == list and len(generation_dict['temperatures']) == 1
+    
+    client = Together(api_key=os.environ.get("TOGETHER_API_KEY"))
+
+    total_answers = []
+    total_prompts = []
+    for instruction, input in tqdm(zip(instructions, inputs)):
+
+        system_prompt = "You are an expert chatbot, capable of instruction-following and question-answering. You are tasked with following the given instruction for the provided input."
+        if len(instruction) == 0 or len(input) == 0:
+            user_prompt = "Instruction: " + (instruction + input).strip() + "\nAnswer:"
+        else:
+            user_prompt = "Instruction: " + instruction + "\nInput: " + input + "\nAnswer:"
+
+        total_prompts.append(user_prompt)
+
+        ###################################
+
+        current_answers = []
+        for _ in range(generation_dict['candidates_per_temp'][0]):
+
+            messages = [{"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}]
+
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=generation_dict['temperatures'][0],
+                #top_p=generation_dict['top_p'],
+                #top_k=generation_dict['top_k'],
+            )
+
+            current_answers.append(response.choices[0].message.content)
+
+        total_answers.append(current_answers)
+
+    return total_answers, total_prompts
+
+##################################################
 
 def run_eval(
     model_path,
@@ -185,8 +235,6 @@ def get_model_answers(
                 ##########################################
 
                 elif model_type == "TogetherAI":
-
-                    breakpoint()
 
                     qs = question["turns"][j]
                     conv.append_message(conv.roles[0], qs)
