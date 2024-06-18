@@ -63,28 +63,28 @@ for model_name in models:
 
     print("Generation Command: ", candidate_generation_command)
     print("Generating candidates...")
-    #generation_result = subprocess.run(candidate_generation_command, shell=True, capture_output=True, text=True)
-    with subprocess.Popen(candidate_generation_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
-        for line in process.stdout:
-            print(line, end='')  # Print the output in real-time
+    generation_result = subprocess.run(candidate_generation_command, shell=True, capture_output=True, text=True)
+    #with subprocess.Popen(candidate_generation_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+    #    for line in process.stdout:
+    #        print(line, end='')  # Print the output in real-time
 
     saved_jsonl_path = f"data/mt_bench/model_answer/{model_id}.jsonl"
 
     ##########################################
 
     judgement_command = f"python gen_judgment.py --model-list {model_name} --parallel 2"
-    #judgement_result = subprocess.run(judgement_command, shell=True, capture_output=True, text=True)
     print("Generating judgements...")
-    with subprocess.Popen(judgement_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
-        for line in process.stdout:
-            print(line, end='')  # Print the output in real-time
+    judgement_result = subprocess.run(judgement_command, shell=True, capture_output=True, text=True)
+    #with subprocess.Popen(judgement_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+    #    for line in process.stdout:
+    #        print(line, end='')  # Print the output in real-time
 
     ##########################################
 
     show_results_command = f"python show_result.py --model-list {model_name}"
-    #show_results_result = subprocess.run(show_results_command, shell=True, capture_output=True, text=True)
-    with subprocess.Popen(show_results_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
-        for line in process.stdout:
-            print(line, end='')  # Print the output in real-time
+    show_results_result = subprocess.run(show_results_command, shell=True, capture_output=True, text=True)
+    #with subprocess.Popen(show_results_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+    #    for line in process.stdout:
+    #        print(line, end='')  # Print the output in real-time
 
 
