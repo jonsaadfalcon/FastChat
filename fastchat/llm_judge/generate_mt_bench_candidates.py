@@ -54,11 +54,11 @@ generation_dict = {
 
 #################################################
 
-for model in models:
+for model_name in models:
 
-    print(f"Generating candidates for model: {model}")
+    print(f"Generating candidates for model: {model_name}")
     
-    model_id = models.split("/")[1]
+    model_id = model_name.split("/")[1]
     candidate_generation_command = f"python gen_model_answer.py --model-path {models} --model-id {model_id} --model-type TogetherAI"
     result = subprocess.run(candidate_generation_command, shell=True, capture_output=True, text=True)
 
