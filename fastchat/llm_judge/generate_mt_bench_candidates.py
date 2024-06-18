@@ -99,10 +99,10 @@ if not perform_ensembling:
         judgement_command = f"python gen_judgment.py --model-list {model_id} --parallel 2 --judge-model gpt-4"
         print("Generating judgements...")
         judgement_result = subprocess.run(judgement_command, shell=True, capture_output=True, text=True)
-        breakpoint()
-        #with subprocess.Popen(judgement_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
-        #    for line in process.stdout:
-        #        print(line, end='')  # Print the output in real-time
+        #breakpoint()
+        with subprocess.Popen(judgement_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+            for line in process.stdout:
+                print(line, end='')  # Print the output in real-time
 
         print("------------------------------------------------")
         print(f"Judgement Results for {model_name}:")
@@ -115,10 +115,10 @@ if not perform_ensembling:
         show_results_command = f"python show_result.py --model-list {model_id}"
         print("Showing results...")
         show_results_result = subprocess.run(show_results_command, shell=True, capture_output=True, text=True)
-        breakpoint()
-        #with subprocess.Popen(show_results_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
-        #    for line in process.stdout:
-        #        print(line, end='')  # Print the output in real-time
+        #breakpoint()
+        with subprocess.Popen(show_results_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+            for line in process.stdout:
+                print(line, end='')  # Print the output in real-time
 
         print("------------------------------------------------")
         print(f"MTBench Results for {model_name}:")
