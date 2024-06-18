@@ -67,6 +67,7 @@ for model_name in models:
     #with subprocess.Popen(candidate_generation_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
     #    for line in process.stdout:
     #        print(line, end='')  # Print the output in real-time
+    breakpoint()
 
     saved_jsonl_path = f"data/mt_bench/model_answer/{model_id}.jsonl"
 
@@ -75,6 +76,7 @@ for model_name in models:
     judgement_command = f"python gen_judgment.py --model-list {model_name} --parallel 2"
     print("Generating judgements...")
     judgement_result = subprocess.run(judgement_command, shell=True, capture_output=True, text=True)
+    breakpoint()
     #with subprocess.Popen(judgement_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
     #    for line in process.stdout:
     #        print(line, end='')  # Print the output in real-time
@@ -82,7 +84,9 @@ for model_name in models:
     ##########################################
 
     show_results_command = f"python show_result.py --model-list {model_name}"
+    print("Showing results...")
     show_results_result = subprocess.run(show_results_command, shell=True, capture_output=True, text=True)
+    breakpoint()
     #with subprocess.Popen(show_results_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
     #    for line in process.stdout:
     #        print(line, end='')  # Print the output in real-time
