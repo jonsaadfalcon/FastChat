@@ -43,7 +43,7 @@ def generate_candidates_with_together_api(instruction:str,
                     {"role": "system", "content": previous_turns["system_response"]},
                     {"role": "user", "content": user_prompt}]
         
-    print("Messages: ", messages)
+    #print("Messages: ", messages)
 
     response = client.chat.completions.create(
                 model=model,
