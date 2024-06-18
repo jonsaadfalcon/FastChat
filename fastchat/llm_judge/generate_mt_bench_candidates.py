@@ -30,8 +30,6 @@ import subprocess
 
 from datasets import Dataset, concatenate_datasets
 
-from evaluation_functions import generate_candidates_with_together_api, perform_candidate_generation
-
 #################################################
 
 # Parameters
