@@ -39,8 +39,8 @@ models = ["Qwen/Qwen1.5-72B-Chat", "Qwen/Qwen1.5-110B-Chat", "microsoft/WizardLM
           "mistralai/Mixtral-8x22B-Instruct-v0.1", "meta-llama/Llama-3-70b-chat-hf", "databricks/dbrx-instruct"]
 MoA_models = models
 
-#models = ["Qwen/Qwen1.5-72B-Chat", "Qwen1.5-72B-Chat_v2"]
-models = ["Qwen/Qwen1.5-72B-Chat"]
+models = ["Qwen/Qwen1.5-72B-Chat", "Qwen1.5-72B-Chat_v2"]
+#models = ["Qwen/Qwen1.5-72B-Chat"]
 
 
 # Generation Settings
@@ -57,7 +57,7 @@ generation_dict = {
 #################################################
 
 # Ensembling Parameters
-perform_ensembling = False
+perform_ensembling = True
 ranker_config = {
     "ranker_checkpoint": "llm-blender/PairRM",
 
@@ -100,9 +100,9 @@ if not perform_ensembling:
         print("Generating judgements...")
         judgement_result = subprocess.run(judgement_command, shell=True, capture_output=True, text=True)
         #breakpoint()
-        with subprocess.Popen(judgement_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
-            for line in process.stdout:
-                print(line, end='')  # Print the output in real-time
+        #with subprocess.Popen(judgement_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
+        #    for line in process.stdout:
+        #        print(line, end='')  # Print the output in real-time
 
         print("------------------------------------------------")
         print(f"Judgement Results for {model_name}:")
@@ -115,10 +115,6 @@ if not perform_ensembling:
         show_results_command = f"python show_result.py --model-list {model_id}"
         print("Showing results...")
         show_results_result = subprocess.run(show_results_command, shell=True, capture_output=True, text=True)
-        #breakpoint()
-        with subprocess.Popen(show_results_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
-            for line in process.stdout:
-                print(line, end='')  # Print the output in real-time
 
         print("------------------------------------------------")
         print(f"MTBench Results for {model_name}:")
