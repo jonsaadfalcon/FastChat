@@ -39,7 +39,7 @@ models = ["Qwen/Qwen1.5-72B-Chat", "Qwen/Qwen1.5-110B-Chat", "microsoft/WizardLM
           "mistralai/Mixtral-8x22B-Instruct-v0.1", "meta-llama/Llama-3-70b-chat-hf", "databricks/dbrx-instruct"]
 MoA_models = models
 
-models = ["Qwen/Qwen1.5-72B-Chat"]
+models = ["Qwen/Qwen1.5-72B-Chat", "Qwen1.5-72B-Chat_v2"]
 
 # Generation Settings
 generation_dict = {
@@ -55,7 +55,7 @@ generation_dict = {
 #################################################
 
 # Ensembling Parameters
-perform_ensembling = False
+perform_ensembling = True
 ranker_config = {
     "ranker_checkpoint": "llm-blender/PairRM",
 
@@ -94,13 +94,19 @@ if not perform_ensembling:
 
         ##########################################
 
-        judgement_command = f"python gen_judgment.py --model-list {model_id} --parallel 2"
+        judgement_command = f"python gen_judgment.py --model-list {model_id} --parallel 2 --judge-model gpt-4"
         print("Generating judgements...")
         judgement_result = subprocess.run(judgement_command, shell=True, capture_output=True, text=True)
         breakpoint()
         #with subprocess.Popen(judgement_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as process:
         #    for line in process.stdout:
         #        print(line, end='')  # Print the output in real-time
+
+        print("------------------------------------------------")
+        print(f"Judgement Results for {model_name}:")
+        for line in judgement_result.stdout.split("\n"):
+            print(line)
+        print("------------------------------------------------")
 
         ##########################################
 
@@ -142,6 +148,10 @@ else:
     
     assert len(total_datasets) == len(models) and len(total_datasets[0]) == len(total_datasets[1])
     for row_idx in range(len(total_datasets[0])):
-        current_outputs = []
+        current_first_turn_candidates = []
+        current_second_turn_candidates = []
+        for dataset in total_datasets:
+            choices = dataset.iloc[row_idx]["choices"]
+            breakpoint()
 
 
