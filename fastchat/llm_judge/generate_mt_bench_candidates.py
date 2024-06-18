@@ -62,3 +62,5 @@ for model_name in models:
     candidate_generation_command = f"python gen_model_answer.py --model-path {models} --model-id {model_id} --model-type TogetherAI"
     result = subprocess.run(candidate_generation_command, shell=True, capture_output=True, text=True)
 
+    print("Result: ", result)
+
