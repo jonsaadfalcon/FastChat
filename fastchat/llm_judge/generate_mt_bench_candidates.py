@@ -159,14 +159,14 @@ else:
         current_second_turn_candidates = []
         question_id = total_datasets[0].iloc[row_idx]["question_id"]
         for dataset in total_datasets:
-
             assert dataset.iloc[row_idx]["question_id"] == question_id
             choices = dataset.iloc[row_idx]["choices"]
-            assert len(choices) == 1 and len(choices[0]['turns']) == 2
-            assert isinstance(choices[0]['turns'][0], str) and isinstance(choices[0]['turns'][1], str)
-            
-            current_first_turn_candidates.append(choices[0]['turns'][0])
-            current_second_turn_candidates.append(choices[0]['turns'][1])
+            for choice_idx in range(len(choices)):
+                assert len(choices) == 1 and len(choices[choice_idx]['turns']) == 2
+                assert isinstance(choices[0]['turns'][choice_idx], str) and isinstance(choices[choice_idx]['turns'][1], str)
+                
+                current_first_turn_candidates.append(choices[choice_idx]['turns'][0])
+                current_second_turn_candidates.append(choices[choice_idx]['turns'][1])
         
         first_turn_candidates.append(current_first_turn_candidates)
         second_turn_candidates.append(current_second_turn_candidates)
