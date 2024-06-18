@@ -32,6 +32,7 @@ def run_eval(
     max_gpu_memory,
     dtype,
     revision,
+    model_type
 ):
     questions = load_questions(question_file, question_begin, question_end)
     # random shuffle the questions to balance the loading
@@ -63,6 +64,7 @@ def run_eval(
                 max_gpu_memory,
                 dtype=dtype,
                 revision=revision,
+                model_type=model_type
             )
         )
 
@@ -82,6 +84,7 @@ def get_model_answers(
     max_gpu_memory,
     dtype,
     revision,
+    model_type
 ):
     model, tokenizer = load_model(
         model_path,
@@ -107,73 +110,88 @@ def get_model_answers(
             conv = get_conversation_template(model_id)
             turns = []
             for j in range(len(question["turns"])):
-                qs = question["turns"][j]
-                conv.append_message(conv.roles[0], qs)
-                conv.append_message(conv.roles[1], None)
-                prompt = conv.get_prompt()
-                input_ids = tokenizer([prompt]).input_ids
 
-                if temperature < 1e-4:
-                    do_sample = False
-                else:
-                    do_sample = True
+                if model_type == "local":
 
-                # some models may error out when generating long outputs
-                try:
-                    output_ids = model.generate(
-                        torch.as_tensor(input_ids).cuda(),
-                        do_sample=do_sample,
-                        temperature=temperature,
-                        max_new_tokens=max_new_token,
-                    )
-                    if model.config.is_encoder_decoder:
-                        output_ids = output_ids[0]
+                    qs = question["turns"][j]
+                    conv.append_message(conv.roles[0], qs)
+                    conv.append_message(conv.roles[1], None)
+                    prompt = conv.get_prompt()
+                    input_ids = tokenizer([prompt]).input_ids
+
+                    if temperature < 1e-4:
+                        do_sample = False
                     else:
-                        output_ids = output_ids[0][len(input_ids[0]) :]
+                        do_sample = True
 
-                    # be consistent with the template's stop_token_ids
-                    if conv.stop_token_ids:
-                        stop_token_ids_index = [
-                            i
-                            for i, id in enumerate(output_ids)
-                            if id in conv.stop_token_ids
-                        ]
-                        if len(stop_token_ids_index) > 0:
-                            output_ids = output_ids[: stop_token_ids_index[0]]
-
-                    output = tokenizer.decode(
-                        output_ids,
-                        spaces_between_special_tokens=False,
-                    )
-                    if conv.stop_str and isinstance(conv.stop_str, list):
-                        stop_str_indices = sorted(
-                            [
-                                output.find(stop_str)
-                                for stop_str in conv.stop_str
-                                if output.find(stop_str) > 0
-                            ]
+                    # some models may error out when generating long outputs
+                    try:
+                        output_ids = model.generate(
+                            torch.as_tensor(input_ids).cuda(),
+                            do_sample=do_sample,
+                            temperature=temperature,
+                            max_new_tokens=max_new_token,
                         )
-                        if len(stop_str_indices) > 0:
-                            output = output[: stop_str_indices[0]]
-                    elif conv.stop_str and output.find(conv.stop_str) > 0:
-                        output = output[: output.find(conv.stop_str)]
-
-                    for special_token in tokenizer.special_tokens_map.values():
-                        if isinstance(special_token, list):
-                            for special_tok in special_token:
-                                output = output.replace(special_tok, "")
+                        if model.config.is_encoder_decoder:
+                            output_ids = output_ids[0]
                         else:
-                            output = output.replace(special_token, "")
-                    output = output.strip()
+                            output_ids = output_ids[0][len(input_ids[0]) :]
 
-                    if conv.name == "xgen" and output.startswith("Assistant:"):
-                        output = output.replace("Assistant:", "", 1).strip()
-                except RuntimeError as e:
-                    print("ERROR question ID: ", question["question_id"])
-                    output = "ERROR"
+                        # be consistent with the template's stop_token_ids
+                        if conv.stop_token_ids:
+                            stop_token_ids_index = [
+                                i
+                                for i, id in enumerate(output_ids)
+                                if id in conv.stop_token_ids
+                            ]
+                            if len(stop_token_ids_index) > 0:
+                                output_ids = output_ids[: stop_token_ids_index[0]]
 
-                conv.update_last_message(output)
-                turns.append(output)
+                        output = tokenizer.decode(
+                            output_ids,
+                            spaces_between_special_tokens=False,
+                        )
+                        if conv.stop_str and isinstance(conv.stop_str, list):
+                            stop_str_indices = sorted(
+                                [
+                                    output.find(stop_str)
+                                    for stop_str in conv.stop_str
+                                    if output.find(stop_str) > 0
+                                ]
+                            )
+                            if len(stop_str_indices) > 0:
+                                output = output[: stop_str_indices[0]]
+                        elif conv.stop_str and output.find(conv.stop_str) > 0:
+                            output = output[: output.find(conv.stop_str)]
+
+                        for special_token in tokenizer.special_tokens_map.values():
+                            if isinstance(special_token, list):
+                                for special_tok in special_token:
+                                    output = output.replace(special_tok, "")
+                            else:
+                                output = output.replace(special_token, "")
+                        output = output.strip()
+
+                        if conv.name == "xgen" and output.startswith("Assistant:"):
+                            output = output.replace("Assistant:", "", 1).strip()
+                    except RuntimeError as e:
+                        print("ERROR question ID: ", question["question_id"])
+                        output = "ERROR"
+
+                    conv.update_last_message(output)
+                    turns.append(output)
+
+                ##########################################
+
+                elif model_type == "TogetherAI":
+
+                    breakpoint()
+
+                else:
+                    
+                    raise ValueError(f"Unknown model type {model_type}")
+
+                ##########################################
 
             choices.append({"index": i, "turns": turns})
 
@@ -214,6 +232,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--model-id", type=str, required=True, help="A custom name for the model."
+    )
+    parser.add_argument(
+        "--model-type", type=str, required=True, help="Local model or Together AI endpoint."
     )
     parser.add_argument(
         "--bench-name",
@@ -299,6 +320,7 @@ if __name__ == "__main__":
         max_gpu_memory=args.max_gpu_memory,
         dtype=str_to_torch_dtype(args.dtype),
         revision=args.revision,
+        model_type=args.model_type,
     )
 
     reorg_answer_file(answer_file)
