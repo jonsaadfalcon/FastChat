@@ -126,6 +126,8 @@ if not perform_ensembling:
 
 else:
 
+    print("Performing ensembling for MT Bench...")
+
     # Check if dataset already exists
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     final_dataset_path = f"data/mt_bench/model_answer/ensemble_{timestamp}.jsonl"
@@ -134,6 +136,7 @@ else:
 
     # Load datasets
     total_datasets = []
+    print("Loading Models...")
     for model_name in models:
         model_id = model_name.split("/")[1]
         saved_jsonl_path = f"data/mt_bench/model_answer/{model_id}.jsonl"
