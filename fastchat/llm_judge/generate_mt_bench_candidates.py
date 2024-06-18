@@ -60,6 +60,9 @@ for model_name in models:
     
     model_id = model_name.split("/")[1]
     candidate_generation_command = f"python gen_model_answer.py --model-path {models} --model-id {model_id} --model-type TogetherAI"
+
+    print("Generation Command: ", candidate_generation_command)
+
     result = subprocess.run(candidate_generation_command, shell=True, capture_output=True, text=True)
 
     print("Result: ", result)
