@@ -188,6 +188,14 @@ def get_model_answers(
 
                     breakpoint()
 
+                    qs = question["turns"][j]
+                    conv.append_message(conv.roles[0], qs)
+                    conv.append_message(conv.roles[1], None)
+                    prompt = conv.get_prompt()
+                    #input_ids = tokenizer([prompt]).input_ids
+
+                    breakpoint()
+
                 else:
 
                     raise ValueError(f"Unknown model type {model_type}")
