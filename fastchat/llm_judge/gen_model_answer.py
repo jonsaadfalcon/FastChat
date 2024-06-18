@@ -30,7 +30,7 @@ def generate_candidates_with_together_api(instruction:str,
     client = Together(api_key=os.environ.get("TOGETHER_API_KEY"))
 
     system_prompt = "You are an expert chatbot, capable of instruction-following and question-answering. You are tasked with following the given instruction for the provided input."
-    user_prompt = "Instruction: " + (instruction + input).strip() + "\nAnswer:"
+    user_prompt = "Instruction: " + (instruction).strip() + "\nAnswer:"
 
     ###################################
 
