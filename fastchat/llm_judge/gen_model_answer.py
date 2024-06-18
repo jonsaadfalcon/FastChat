@@ -86,17 +86,18 @@ def get_model_answers(
     revision,
     model_type
 ):
-    model, tokenizer = load_model(
-        model_path,
-        revision=revision,
-        device="cuda",
-        num_gpus=num_gpus_per_model,
-        max_gpu_memory=max_gpu_memory,
-        dtype=dtype,
-        load_8bit=False,
-        cpu_offloading=False,
-        debug=False,
-    )
+    if model_type == "local":
+        model, tokenizer = load_model(
+            model_path,
+            revision=revision,
+            device="cuda",
+            num_gpus=num_gpus_per_model,
+            max_gpu_memory=max_gpu_memory,
+            dtype=dtype,
+            load_8bit=False,
+            cpu_offloading=False,
+            debug=False,
+        )
 
     for question in tqdm(questions):
         if question["category"] in temperature_config:
@@ -188,7 +189,7 @@ def get_model_answers(
                     breakpoint()
 
                 else:
-                    
+
                     raise ValueError(f"Unknown model type {model_type}")
 
                 ##########################################
