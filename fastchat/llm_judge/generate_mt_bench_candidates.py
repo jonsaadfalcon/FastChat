@@ -59,7 +59,7 @@ for model_name in models:
     print(f"Generating candidates for model: {model_name}")
     
     model_id = model_name.split("/")[1]
-    candidate_generation_command = f"python gen_model_answer.py --model-path {model_name} --model-id {model_id} --model-type TogetherAI --num_choices {generation_dict['candidates_per_temp'][0]}"
+    candidate_generation_command = f"python gen_model_answer.py --model-path {model_name} --model-id {model_id} --model-type TogetherAI --num-choices {generation_dict['candidates_per_temp'][0]}"
 
     print("Generation Command: ", candidate_generation_command)
     print("Generating candidates...")
