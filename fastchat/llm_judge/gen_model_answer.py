@@ -22,49 +22,32 @@ from together import Together
 
 ##################################################
 
-def generate_candidates_with_together_api(instructions:List[str], 
-                                          inputs: List[str], 
+def generate_candidates_with_together_api(instruction:str, 
                                           model: str, 
-                                          generation_dict: dict):
-    
-    assert type(generation_dict['candidates_per_temp']) == list and len(generation_dict['candidates_per_temp']) == 1
-    assert type(generation_dict['temperatures']) == list and len(generation_dict['temperatures']) == 1
+                                          temperature: float,
+                                          previous_turns: List[str] = []):
     
     client = Together(api_key=os.environ.get("TOGETHER_API_KEY"))
 
-    total_answers = []
-    total_prompts = []
-    for instruction, input in tqdm(zip(instructions, inputs)):
+    system_prompt = "You are an expert chatbot, capable of instruction-following and question-answering. You are tasked with following the given instruction for the provided input."
+    user_prompt = "Instruction: " + (instruction + input).strip() + "\nAnswer:"
 
-        system_prompt = "You are an expert chatbot, capable of instruction-following and question-answering. You are tasked with following the given instruction for the provided input."
-        if len(instruction) == 0 or len(input) == 0:
-            user_prompt = "Instruction: " + (instruction + input).strip() + "\nAnswer:"
-        else:
-            user_prompt = "Instruction: " + instruction + "\nInput: " + input + "\nAnswer:"
+    ###################################
 
-        total_prompts.append(user_prompt)
+    messages = [{"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}]
 
-        ###################################
-
-        current_answers = []
-        for _ in range(generation_dict['candidates_per_temp'][0]):
-
-            messages = [{"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt}]
-
-            response = client.chat.completions.create(
+    response = client.chat.completions.create(
                 model=model,
                 messages=messages,
-                temperature=generation_dict['temperatures'][0],
+                temperature=temperature,
                 #top_p=generation_dict['top_p'],
                 #top_k=generation_dict['top_k'],
             )
 
-            current_answers.append(response.choices[0].message.content)
+    output = response.choices[0].message.content
 
-        total_answers.append(current_answers)
-
-    return total_answers, total_prompts
+    return output
 
 ##################################################
 
@@ -242,7 +225,18 @@ def get_model_answers(
                     prompt = conv.get_prompt()
                     #input_ids = tokenizer([prompt]).input_ids
 
+                    if j == 1:
+                        breakpoint()
+
+                    output = generate_candidates_with_together_api(instruction=qs,
+                                                                   model=model_path,
+                                                                   temperature=temperature,
+                                                                   previous_turns=turns)
+                    
                     breakpoint()
+                    
+                    conv.update_last_message(output)
+                    turns.append(output)
 
                 else:
 
