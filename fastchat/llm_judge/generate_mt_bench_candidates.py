@@ -62,7 +62,7 @@ generation_dict = {
 #################################################
 
 # Ensembling Parameters
-perform_ensembling = True
+perform_ensembling = False
 ranker_config = {
     "ranker_checkpoint": "llm-blender/PairRM",
 
