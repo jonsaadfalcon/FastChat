@@ -48,7 +48,6 @@ models = ["Qwen/Qwen1.5-72B-Chat", "Qwen/Qwen1.5-110B-Chat", "microsoft/WizardLM
           "cognitivecomputations/dolphin-2.2.1-mistral-7b", "microsoft/Phi-3-mini-4k-instruct", #"upstage/SOLAR-10.7B-Instruct-v1.0",
           "HuggingFaceH4/zephyr-7b-beta", "microsoft/Phi-3-small-8k-instruct"]
 
-
 # Generation Settings
 generation_dict = {
     "batch_size": 8,
@@ -58,6 +57,9 @@ generation_dict = {
     #"top_k": 10,
     #"top_p": 0.9
 }
+
+togetherai_models = ["Qwen/Qwen1.5-72B-Chat", "Qwen/Qwen1.5-110B-Chat", "microsoft/WizardLM-2-8x22B",
+                     "mistralai/Mixtral-8x22B-Instruct-v0.1", "meta-llama/Llama-3-70b-chat-hf", "databricks/dbrx-instruct"]
 
 #################################################
 
@@ -85,7 +87,10 @@ if not perform_ensembling:
         model_id = model_name.split("/")[1]
         saved_jsonl_path = f"data/mt_bench/model_answer/{model_id}.jsonl"
         if not os.path.exists(saved_jsonl_path):
-            candidate_generation_command = f"python gen_model_answer.py --model-path {model_name} --model-id {model_id} --model-type TogetherAI --num-choices {generation_dict['candidates_per_temp'][0]}"
+            if model_name in togetherai_models:
+                candidate_generation_command = f"python gen_model_answer.py --model-path {model_name} --model-id {model_id} --model-type TogetherAI --num-choices {generation_dict['candidates_per_temp'][0]}"
+            else:
+                candidate_generation_command = f"python gen_model_answer.py --model-path {model_name} --model-id {model_id} --model-type HuggingFace --num-choices {generation_dict['candidates_per_temp'][0]}"
 
             print("Generation Command: ", candidate_generation_command)
             print("Generating candidates...")
