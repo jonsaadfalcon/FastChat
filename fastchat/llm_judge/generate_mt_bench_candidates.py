@@ -41,7 +41,7 @@ from datasets import Dataset, concatenate_datasets
 #models = ["mistralai/Mixtral-8x22B-Instruct-v0.1", "mistralai/Mixtral-8x22B-Instruct-v0.1_v2"]
 
 # Total Generation Models
-models = ["Qwen/Qwen1.5-72B-Chat", "Qwen/Qwen1.5-110B-Chat", "microsoft/WizardLM-2-8x22B",
+models = ["Qwen/Qwen2-72B-Instruct", "microsoft/WizardLM-2-8x22B",
           "mistralai/Mixtral-8x22B-Instruct-v0.1", "meta-llama/Llama-3-70b-chat-hf", "databricks/dbrx-instruct",
           "Qwen/Qwen1.5-7B-Chat","meta-llama/Meta-Llama-3-8B-Instruct", "Nexusflow/Starling-LM-7B-beta", 
           "berkeley-nest/Starling-LM-7B-alpha", "teknium/OpenHermes-2.5-Mistral-7B", "mistralai/Mistral-7B-Instruct-v0.2",
@@ -58,7 +58,7 @@ generation_dict = {
     #"top_p": 0.9
 }
 
-togetherai_models = ["Qwen/Qwen1.5-72B-Chat", "Qwen/Qwen1.5-110B-Chat", "microsoft/WizardLM-2-8x22B",
+togetherai_models = ["Qwen/Qwen2-72B-Instruct", "microsoft/WizardLM-2-8x22B",
                      "mistralai/Mixtral-8x22B-Instruct-v0.1", "meta-llama/Llama-3-70b-chat-hf", "databricks/dbrx-instruct"]
 
 #################################################
