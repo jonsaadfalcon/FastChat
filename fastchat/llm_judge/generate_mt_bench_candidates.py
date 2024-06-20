@@ -35,21 +35,26 @@ from datasets import Dataset, concatenate_datasets
 # Parameters
 
 # Mixture of Agents Models
-models = ["Qwen/Qwen1.5-72B-Chat", "Qwen/Qwen1.5-110B-Chat", "microsoft/WizardLM-2-8x22B",
-          "mistralai/Mixtral-8x22B-Instruct-v0.1", "meta-llama/Llama-3-70b-chat-hf", "databricks/dbrx-instruct"]
-MoA_models = models
+#models = ["Qwen/Qwen1.5-72B-Chat", "Qwen/Qwen1.5-110B-Chat", "microsoft/WizardLM-2-8x22B",
+#          "mistralai/Mixtral-8x22B-Instruct-v0.1", "meta-llama/Llama-3-70b-chat-hf", "databricks/dbrx-instruct"]
 
-#models = ["Qwen/Qwen1.5-72B-Chat"]
-models = ["mistralai/Mixtral-8x22B-Instruct-v0.1", "mistralai/Mixtral-8x22B-Instruct-v0.1_v2"]
+#models = ["mistralai/Mixtral-8x22B-Instruct-v0.1", "mistralai/Mixtral-8x22B-Instruct-v0.1_v2"]
+
+# Total Generation Models
+models = ["Qwen/Qwen1.5-72B-Chat", "Qwen/Qwen1.5-110B-Chat", "microsoft/WizardLM-2-8x22B",
+          "mistralai/Mixtral-8x22B-Instruct-v0.1", "meta-llama/Llama-3-70b-chat-hf", "databricks/dbrx-instruct",
+          "Qwen/Qwen1.5-7B-Chat","meta-llama/Meta-Llama-3-8B-Instruct", "Nexusflow/Starling-LM-7B-beta", 
+          "berkeley-nest/Starling-LM-7B-alpha", "teknium/OpenHermes-2.5-Mistral-7B", "mistralai/Mistral-7B-Instruct-v0.2",
+          "cognitivecomputations/dolphin-2.2.1-mistral-7b", "microsoft/Phi-3-mini-4k-instruct", #"upstage/SOLAR-10.7B-Instruct-v1.0",
+          "HuggingFaceH4/zephyr-7b-beta", "microsoft/Phi-3-small-8k-instruct"]
 
 
 # Generation Settings
 generation_dict = {
     "batch_size": 8,
     "temperatures": [0.7], #0.9 #1.5
-    "candidates_per_temp": [1],
+    "candidates_per_temp": [10],
     "generation_max_length": 512,
-    "dataset_cutoff": 4, #3, None
     #"top_k": 10,
     #"top_p": 0.9
 }
@@ -91,8 +96,6 @@ if not perform_ensembling:
 
         else:
             print(f"Model {model_name} already has candidates generated. Already saved to: {saved_jsonl_path}")
-
-        saved_jsonl_path = f"data/mt_bench/model_answer/{model_id}.jsonl"
 
         ##########################################
 
@@ -221,12 +224,11 @@ else:
     question_ids = dataset["question_id"].tolist()
     answer_ids = dataset["answer_id"].tolist()
     model_ids = ["ensemble"] * len(question_ids)
-    choices = ensemble_choices
     turn_instructions = [""] * len(question_ids)
 
     os.makedirs(os.path.dirname(final_dataset_path), exist_ok=True)
     with open(os.path.expanduser(final_dataset_path), "a") as fout:
-        for question_id, answer_id, model_id, choices, turn_instruction in zip(question_ids, answer_ids, model_ids, choices, turn_instructions):
+        for question_id, answer_id, model_id, choices, turn_instruction in zip(question_ids, answer_ids, model_ids, ensemble_choices, turn_instructions):
             ans_json = {
                 "question_id": question_id,
                 "answer_id": answer_id,
