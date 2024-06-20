@@ -62,8 +62,6 @@ def generate_candidates_with_together_api(instruction:str,
 ##################################################
 
 def generate_candidates_with_huggingface_locally(instruction:str, 
-                                                 model: str, 
-                                                 temperature: float,
                                                  pipeline: transformers.pipeline,
                                                  generation_config: GenerationConfig,
                                                  previous_turns: dict = None):
@@ -373,8 +371,6 @@ def get_model_answers(
 
                     generation_config.temperature = temperature
                     output = generate_candidates_with_huggingface_locally(instruction=qs,
-                                                                          model=model_path,
-                                                                          temperature=temperature,
                                                                           pipeline=pipeline,
                                                                           generation_config=generation_config,
                                                                           previous_turns=previous_turns)
