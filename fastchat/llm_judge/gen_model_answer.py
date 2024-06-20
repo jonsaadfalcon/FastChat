@@ -182,8 +182,9 @@ def get_model_answers(
     elif model_type == "HuggingFace":
         
         model_id = model_path
+        model = model_path
     
-        if model_id == "microsoft/Phi-3-small-8k-instruct":
+        if model == "microsoft/Phi-3-small-8k-instruct":
             pipeline = transformers.pipeline(
                 "text-generation",
                 model=model_id,
