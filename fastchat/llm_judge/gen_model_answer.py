@@ -369,7 +369,7 @@ def get_model_answers(
                         
                     breakpoint()
 
-                    generation_config.temperature = temperature
+                    generation_config.temperature = temperature if temperature != 0.0 else 0.7
                     output = generate_candidates_with_huggingface_locally(instruction=qs,
                                                                           pipeline=pipeline,
                                                                           generation_config=generation_config,
