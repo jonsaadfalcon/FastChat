@@ -43,7 +43,7 @@ from datasets import Dataset, concatenate_datasets
 # Total Generation Models
 models = ["Qwen/Qwen2-72B-Instruct", "microsoft/WizardLM-2-8x22B",
           "mistralai/Mixtral-8x22B-Instruct-v0.1", "meta-llama/Llama-3-70b-chat-hf", "databricks/dbrx-instruct",
-          "Qwen/Qwen1.5-7B-Chat","meta-llama/Meta-Llama-3-8B-Instruct", "Nexusflow/Starling-LM-7B-beta", 
+          "Qwen/Qwen1.5-7B-Chat", "Nexusflow/Starling-LM-7B-beta", "meta-llama/Meta-Llama-3-8B-Instruct"
           "berkeley-nest/Starling-LM-7B-alpha", "teknium/OpenHermes-2.5-Mistral-7B", "mistralai/Mistral-7B-Instruct-v0.2",
           "cognitivecomputations/dolphin-2.2.1-mistral-7b", "microsoft/Phi-3-mini-4k-instruct", #"upstage/SOLAR-10.7B-Instruct-v1.0",
           "HuggingFaceH4/zephyr-7b-beta", "microsoft/Phi-3-small-8k-instruct"]
