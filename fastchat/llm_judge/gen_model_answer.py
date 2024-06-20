@@ -181,7 +181,7 @@ def get_model_answers(
         )
     elif model_type == "HuggingFace":
         
-        model_id = model
+        model_id = model_path
     
         if model == "microsoft/Phi-3-small-8k-instruct":
             pipeline = transformers.pipeline(
@@ -228,7 +228,7 @@ def get_model_answers(
         
         generation_config.max_new_tokens = max_new_token
         generation_config.do_sample = True
-        generation_config.temperature = temperature
+        #generation_config.temperature = temperature
         generation_config.top_p = 0.9
         generation_config.num_return_sequences = 1
         generation_config.is_encoder_decoder = False
@@ -370,6 +370,7 @@ def get_model_answers(
                         
                     breakpoint()
 
+                    generation_config.temperature = temperature
                     output = generate_candidates_with_huggingface_locally(instruction=qs,
                                                                           model=model_path,
                                                                           temperature=temperature,
