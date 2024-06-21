@@ -24,6 +24,18 @@ from together import Together
 
 ##################################################
 
+def search_string_in_jsonl(file_path, search_string):
+    found = False
+    with open(file_path, 'r', encoding='utf-8') as file:
+        for line in file:
+            if search_string in line:
+                found = True
+                break
+                #print(f"Found the string in line: {line.strip()}")
+    #if not found:
+     #   print(f"The string '{search_string}' was not found in the file.")
+    return found
+
 def generate_candidates_with_together_api(instruction:str, 
                                           model: str, 
                                           temperature: float,
@@ -244,161 +256,165 @@ def get_model_answers(
     print("Total Questions: ", len(questions))
 
     for question in tqdm(questions):
-        if question["category"] in temperature_config:
-            temperature = temperature_config[question["category"]]
-        else:
-            temperature = 0.7
 
-        choices = []
-        for i in range(num_choices):
-            torch.manual_seed(i)
-            conv = get_conversation_template(model_id)
-            turns = []
-            turn_instruction = []
-            for j in range(len(question["turns"])):
+        question_string = f'"question_id": {question["question_id"]}'
+        if os.path.exists(answer_file) and not search_string_in_jsonl(answer_file, question_string):
 
-                if model_type == "local":
+            if question["category"] in temperature_config:
+                temperature = temperature_config[question["category"]]
+            else:
+                temperature = 0.7
 
-                    qs = question["turns"][j]
-                    conv.append_message(conv.roles[0], qs)
-                    conv.append_message(conv.roles[1], None)
-                    prompt = conv.get_prompt()
-                    input_ids = tokenizer([prompt]).input_ids
+            choices = []
+            for i in range(num_choices):
+                torch.manual_seed(i)
+                conv = get_conversation_template(model_id)
+                turns = []
+                turn_instruction = []
+                for j in range(len(question["turns"])):
+                    
+                    if model_type == "local":
 
-                    if temperature < 1e-4:
-                        do_sample = False
-                    else:
-                        do_sample = True
+                        qs = question["turns"][j]
+                        conv.append_message(conv.roles[0], qs)
+                        conv.append_message(conv.roles[1], None)
+                        prompt = conv.get_prompt()
+                        input_ids = tokenizer([prompt]).input_ids
 
-                    # some models may error out when generating long outputs
-                    try:
-                        output_ids = model.generate(
-                            torch.as_tensor(input_ids).cuda(),
-                            do_sample=do_sample,
-                            temperature=temperature,
-                            max_new_tokens=max_new_token,
-                        )
-                        if model.config.is_encoder_decoder:
-                            output_ids = output_ids[0]
+                        if temperature < 1e-4:
+                            do_sample = False
                         else:
-                            output_ids = output_ids[0][len(input_ids[0]) :]
+                            do_sample = True
 
-                        # be consistent with the template's stop_token_ids
-                        if conv.stop_token_ids:
-                            stop_token_ids_index = [
-                                i
-                                for i, id in enumerate(output_ids)
-                                if id in conv.stop_token_ids
-                            ]
-                            if len(stop_token_ids_index) > 0:
-                                output_ids = output_ids[: stop_token_ids_index[0]]
-
-                        output = tokenizer.decode(
-                            output_ids,
-                            spaces_between_special_tokens=False,
-                        )
-                        if conv.stop_str and isinstance(conv.stop_str, list):
-                            stop_str_indices = sorted(
-                                [
-                                    output.find(stop_str)
-                                    for stop_str in conv.stop_str
-                                    if output.find(stop_str) > 0
-                                ]
+                        # some models may error out when generating long outputs
+                        try:
+                            output_ids = model.generate(
+                                torch.as_tensor(input_ids).cuda(),
+                                do_sample=do_sample,
+                                temperature=temperature,
+                                max_new_tokens=max_new_token,
                             )
-                            if len(stop_str_indices) > 0:
-                                output = output[: stop_str_indices[0]]
-                        elif conv.stop_str and output.find(conv.stop_str) > 0:
-                            output = output[: output.find(conv.stop_str)]
-
-                        for special_token in tokenizer.special_tokens_map.values():
-                            if isinstance(special_token, list):
-                                for special_tok in special_token:
-                                    output = output.replace(special_tok, "")
+                            if model.config.is_encoder_decoder:
+                                output_ids = output_ids[0]
                             else:
-                                output = output.replace(special_token, "")
-                        output = output.strip()
+                                output_ids = output_ids[0][len(input_ids[0]) :]
 
-                        if conv.name == "xgen" and output.startswith("Assistant:"):
-                            output = output.replace("Assistant:", "", 1).strip()
-                    except RuntimeError as e:
-                        print("ERROR question ID: ", question["question_id"])
-                        output = "ERROR"
+                            # be consistent with the template's stop_token_ids
+                            if conv.stop_token_ids:
+                                stop_token_ids_index = [
+                                    i
+                                    for i, id in enumerate(output_ids)
+                                    if id in conv.stop_token_ids
+                                ]
+                                if len(stop_token_ids_index) > 0:
+                                    output_ids = output_ids[: stop_token_ids_index[0]]
 
-                    conv.update_last_message(output)
-                    turns.append(output)
-                    turn_instruction.append(qs)
+                            output = tokenizer.decode(
+                                output_ids,
+                                spaces_between_special_tokens=False,
+                            )
+                            if conv.stop_str and isinstance(conv.stop_str, list):
+                                stop_str_indices = sorted(
+                                    [
+                                        output.find(stop_str)
+                                        for stop_str in conv.stop_str
+                                        if output.find(stop_str) > 0
+                                    ]
+                                )
+                                if len(stop_str_indices) > 0:
+                                    output = output[: stop_str_indices[0]]
+                            elif conv.stop_str and output.find(conv.stop_str) > 0:
+                                output = output[: output.find(conv.stop_str)]
 
-                ##########################################
+                            for special_token in tokenizer.special_tokens_map.values():
+                                if isinstance(special_token, list):
+                                    for special_tok in special_token:
+                                        output = output.replace(special_tok, "")
+                                else:
+                                    output = output.replace(special_token, "")
+                            output = output.strip()
 
-                elif model_type == "TogetherAI":
+                            if conv.name == "xgen" and output.startswith("Assistant:"):
+                                output = output.replace("Assistant:", "", 1).strip()
+                        except RuntimeError as e:
+                            print("ERROR question ID: ", question["question_id"])
+                            output = "ERROR"
 
-                    qs = question["turns"][j]
-                    conv.append_message(conv.roles[0], qs)
-                    conv.append_message(conv.roles[1], None)
-                    prompt = conv.get_prompt()
-                    #input_ids = tokenizer([prompt]).input_ids
+                        conv.update_last_message(output)
+                        turns.append(output)
+                        turn_instruction.append(qs)
 
-                    previous_turns = None
-                    if j == 1:
-                        #breakpoint()
-                        previous_turns = {"first_instruction": conv.messages[0][1], 
-                                          "system_response": conv.messages[1][1]}
+                    ##########################################
 
-                    output = generate_candidates_with_together_api(instruction=qs,
-                                                                   model=model_path,
-                                                                   temperature=temperature,
-                                                                   previous_turns=previous_turns)
-                    
-                    conv.update_last_message(output)
-                    turns.append(output)
-                    turn_instruction.append(qs)
+                    elif model_type == "TogetherAI":
 
-                elif model_type == "HuggingFace":
+                        qs = question["turns"][j]
+                        conv.append_message(conv.roles[0], qs)
+                        conv.append_message(conv.roles[1], None)
+                        prompt = conv.get_prompt()
+                        #input_ids = tokenizer([prompt]).input_ids
 
-                    qs = question["turns"][j]
-                    conv.append_message(conv.roles[0], qs)
-                    conv.append_message(conv.roles[1], None)
-                    prompt = conv.get_prompt()
-                    #input_ids = tokenizer([prompt]).input_ids
+                        previous_turns = None
+                        if j == 1:
+                            #breakpoint()
+                            previous_turns = {"first_instruction": conv.messages[0][1], 
+                                            "system_response": conv.messages[1][1]}
 
-                    previous_turns = None
-                    if j == 1:
-                        #breakpoint()
-                        previous_turns = {"first_instruction": conv.messages[0][1], 
-                                          "system_response": conv.messages[1][1]}
+                        output = generate_candidates_with_together_api(instruction=qs,
+                                                                    model=model_path,
+                                                                    temperature=temperature,
+                                                                    previous_turns=previous_turns)
                         
-                    #breakpoint()
+                        conv.update_last_message(output)
+                        turns.append(output)
+                        turn_instruction.append(qs)
 
-                    generation_config.temperature = temperature if temperature != 0.0 else 0.7
-                    output = generate_candidates_with_huggingface_locally(instruction=qs,
-                                                                          pipeline=pipeline,
-                                                                          generation_config=generation_config,
-                                                                          previous_turns=previous_turns)
-                    
-                    conv.update_last_message(output)
-                    turns.append(output)
-                    turn_instruction.append(qs)
+                    elif model_type == "HuggingFace":
 
-                else:
+                        qs = question["turns"][j]
+                        conv.append_message(conv.roles[0], qs)
+                        conv.append_message(conv.roles[1], None)
+                        prompt = conv.get_prompt()
+                        #input_ids = tokenizer([prompt]).input_ids
 
-                    raise ValueError(f"Unknown model type {model_type}")
+                        previous_turns = None
+                        if j == 1:
+                            #breakpoint()
+                            previous_turns = {"first_instruction": conv.messages[0][1], 
+                                            "system_response": conv.messages[1][1]}
+                            
+                        #breakpoint()
 
-                ##########################################
+                        generation_config.temperature = temperature if temperature != 0.0 else 0.7
+                        output = generate_candidates_with_huggingface_locally(instruction=qs,
+                                                                            pipeline=pipeline,
+                                                                            generation_config=generation_config,
+                                                                            previous_turns=previous_turns)
+                        
+                        conv.update_last_message(output)
+                        turns.append(output)
+                        turn_instruction.append(qs)
 
-            choices.append({"index": i, "turns": turns})
+                    else:
 
-        # Dump answers
-        os.makedirs(os.path.dirname(answer_file), exist_ok=True)
-        with open(os.path.expanduser(answer_file), "a") as fout:
-            ans_json = {
-                "question_id": question["question_id"],
-                "answer_id": shortuuid.uuid(),
-                "model_id": model_id,
-                "choices": choices,
-                "tstamp": time.time(),
-                "turn_instruction": turn_instruction,
-            }
-            fout.write(json.dumps(ans_json) + "\n")
+                        raise ValueError(f"Unknown model type {model_type}")
+
+                    ##########################################
+
+                choices.append({"index": i, "turns": turns})
+
+            # Dump answers
+            os.makedirs(os.path.dirname(answer_file), exist_ok=True)
+            with open(os.path.expanduser(answer_file), "a") as fout:
+                ans_json = {
+                    "question_id": question["question_id"],
+                    "answer_id": shortuuid.uuid(),
+                    "model_id": model_id,
+                    "choices": choices,
+                    "tstamp": time.time(),
+                    "turn_instruction": turn_instruction,
+                }
+                fout.write(json.dumps(ans_json) + "\n")
 
 
 def reorg_answer_file(answer_file):
