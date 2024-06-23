@@ -29,7 +29,7 @@ NNODES=$SLURM_NNODES
 NUM_GPUS_TOTAL=$((GPUS_PER_NODE*SLURM_NNODES))
 echo $NUM_GPUS_TOTAL
 
-export HF_TOKEN="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"
+export HF_TOKEN=""
 export MASTER_ADDR=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)
 function unused_port() {
     N=${1:-1}

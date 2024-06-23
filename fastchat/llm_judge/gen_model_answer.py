@@ -25,6 +25,9 @@ from together import Together
 ##################################################
 
 def search_string_in_jsonl(file_path, search_string):
+    if not os.path.exists(file_path):
+        return False
+    
     found = False
     with open(file_path, 'r', encoding='utf-8') as file:
         for line in file:
@@ -54,7 +57,7 @@ def generate_candidates_with_together_api(instruction:str,
     else:
         messages = [{"role": "system", "content": system_prompt},
                     {"role": "user", "content": previous_turns["first_instruction"]},
-                    {"role": "system", "content": previous_turns["system_response"]},
+                    {"role": "assistant", "content": previous_turns["system_response"]},
                     {"role": "user", "content": user_prompt}]
         
     #print("Messages: ", messages)
@@ -76,19 +79,29 @@ def generate_candidates_with_together_api(instruction:str,
 def generate_candidates_with_huggingface_locally(instruction:str, 
                                                  pipeline: transformers.pipeline,
                                                  generation_config: GenerationConfig,
+                                                 model_path: str,
                                                  previous_turns: dict = None):
     
     system_prompt = "You are an expert chatbot, capable of instruction-following and question-answering. You are tasked with following the given instruction for the provided input."
     user_prompt = instruction
             
-    if previous_turns is None:
-        messages = [{"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}]
+    if model_path in ["mistralai/Mistral-7B-Instruct-v0.2", "cognitivecomputations/dolphin-2.2.1-mistral-7b", "microsoft/Phi-3-mini-4k-instruct", 
+                      "upstage/SOLAR-10.7B-Instruct-v1.0", "microsoft/Phi-3-small-8k-instruct", "mistralai/Mistral-7B-Instruct-v0.3"]:
+        if previous_turns is None:
+            messages = [{"role": "user", "content": user_prompt}]
+        else:
+            messages = [{"role": "user", "content": previous_turns["first_instruction"]},
+                        {"role": "assistant", "content": previous_turns["system_response"]},
+                        {"role": "user", "content": user_prompt}]
     else:
-        messages = [{"role": "system", "content": system_prompt},
-                    {"role": "user", "content": previous_turns["first_instruction"]},
-                    {"role": "system", "content": previous_turns["system_response"]},
-                    {"role": "user", "content": user_prompt}]
+        if previous_turns is None:
+            messages = [{"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}]
+        else:
+            messages = [{"role": "system", "content": system_prompt},
+                        {"role": "user", "content": previous_turns["first_instruction"]},
+                        {"role": "assistant", "content": previous_turns["system_response"]},
+                        {"role": "user", "content": user_prompt}]
             
     prompt = pipeline.tokenizer.apply_chat_template(
             messages, 
@@ -216,7 +229,8 @@ def get_model_answers(
 
         pipeline.model.config.pad_token_id = pipeline.tokenizer.eos_token_id
         pipeline.tokenizer.pad_token_id = pipeline.tokenizer.eos_token_id
-        if model == "meta-llama/Meta-Llama-3-8B-Instruct":
+        if model in ["meta-llama/Meta-Llama-3-8B-Instruct", "princeton-nlp/Llama-3-Instruct-8B-SimPO", "princeton-nlp/Llama-3-Instruct-8B-IPO", 
+                     "princeton-nlp/Llama-3-Instruct-8B-RDPO", "princeton-nlp/Llama-3-Instruct-8B-DPO"]:
             pipeline.tokenizer.padding_side = 'left'
 
         pipeline.model.config.is_encoder_decoder = False
@@ -244,7 +258,8 @@ def get_model_answers(
         generation_config.num_return_sequences = 1
         generation_config.is_encoder_decoder = False
         generation_config.eos_token_id = terminators if model in ["meta-llama/Meta-Llama-3-8B-Instruct"] else pipeline.tokenizer.eos_token_id
-        if model in ["meta-llama/Meta-Llama-3-8B-Instruct", "upstage/SOLAR-10.7B-Instruct-v1.0", "meta-llama/Llama-2-7b-chat-hf"]:
+        if model in ["meta-llama/Meta-Llama-3-8B-Instruct", "princeton-nlp/Llama-3-Instruct-8B-SimPO", "princeton-nlp/Llama-3-Instruct-8B-IPO", 
+                     "princeton-nlp/Llama-3-Instruct-8B-RDPO", "princeton-nlp/Llama-3-Instruct-8B-DPO"]:
             generation_config.pretraining_tp = 1
         
         pipeline.model.config = generation_config
@@ -258,7 +273,7 @@ def get_model_answers(
     for question in tqdm(questions):
 
         question_string = f'"question_id": {question["question_id"]}'
-        if os.path.exists(answer_file) and not search_string_in_jsonl(answer_file, question_string):
+        if not search_string_in_jsonl(answer_file, question_string):
 
             if question["category"] in temperature_config:
                 temperature = temperature_config[question["category"]]
@@ -381,15 +396,16 @@ def get_model_answers(
                         if j == 1:
                             #breakpoint()
                             previous_turns = {"first_instruction": conv.messages[0][1], 
-                                            "system_response": conv.messages[1][1]}
+                                              "system_response": conv.messages[1][1]}
                             
                         #breakpoint()
 
                         generation_config.temperature = temperature if temperature != 0.0 else 0.7
                         output = generate_candidates_with_huggingface_locally(instruction=qs,
-                                                                            pipeline=pipeline,
-                                                                            generation_config=generation_config,
-                                                                            previous_turns=previous_turns)
+                                                                              pipeline=pipeline,
+                                                                              generation_config=generation_config,
+                                                                              model_path=model_path,
+                                                                              previous_turns=previous_turns,)
                         
                         conv.update_last_message(output)
                         turns.append(output)

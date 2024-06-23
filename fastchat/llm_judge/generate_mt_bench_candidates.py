@@ -35,20 +35,24 @@ from datasets import Dataset, concatenate_datasets
 # Parameters
 
 # Mixture of Agents Models
-#models = ["Qwen/Qwen2-72B-Instruct", "microsoft/WizardLM-2-8x22B",
-#          "mistralai/Mixtral-8x22B-Instruct-v0.1", "meta-llama/Llama-3-70b-chat-hf", "databricks/dbrx-instruct"]
+#models = ["Qwen/Qwen2-72B-Instruct", "microsoft/WizardLM-2-8x22B"]
+models = ["Qwen/Qwen1.5-72B-Chat", "Qwen/Qwen1.5-110B-Chat", "microsoft/WizardLM-2-8x22B"]
 
 #models = ["mistralai/Mixtral-8x22B-Instruct-v0.1", "mistralai/Mixtral-8x22B-Instruct-v0.1_v2"]
 
-#models = ["Qwen/Qwen1.5-7B-Chat","meta-llama/Meta-Llama-3-8B-Instruct", "Nexusflow/Starling-LM-7B-beta", 
+#models = ["Qwen/Qwen2-7B-Instruct","meta-llama/Meta-Llama-3-8B-Instruct", "Nexusflow/Starling-LM-7B-beta", 
 #          "berkeley-nest/Starling-LM-7B-alpha", "teknium/OpenHermes-2.5-Mistral-7B", "mistralai/Mistral-7B-Instruct-v0.2",
 #          "cognitivecomputations/dolphin-2.2.1-mistral-7b", "microsoft/Phi-3-mini-4k-instruct", #"upstage/SOLAR-10.7B-Instruct-v1.0",
 #          "HuggingFaceH4/zephyr-7b-beta", "microsoft/Phi-3-small-8k-instruct"]
 
+# SimPO Models
+#models = ["princeton-nlp/Llama-3-Instruct-8B-SimPO", "princeton-nlp/Llama-3-Instruct-8B-IPO",
+#         "princeton-nlp/Llama-3-Instruct-8B-RDPO", "princeton-nlp/Llama-3-Instruct-8B-DPO"]
+
+# Qwen/Qwen1.5-7B-Chat
+
 # Local models
-models = ["teknium/OpenHermes-2.5-Mistral-7B", "mistralai/Mistral-7B-Instruct-v0.2",
-          "cognitivecomputations/dolphin-2.2.1-mistral-7b", "microsoft/Phi-3-mini-4k-instruct", #"upstage/SOLAR-10.7B-Instruct-v1.0",
-          "HuggingFaceH4/zephyr-7b-beta", "microsoft/Phi-3-small-8k-instruct"]
+#models = ["HuggingFaceH4/zephyr-7b-beta", "microsoft/Phi-3-small-8k-instruct"]
 
 # Generation Settings
 generation_dict = {
@@ -60,8 +64,10 @@ generation_dict = {
     #"top_p": 0.9
 }
 
-continue_gathering_answers = True
+continue_gathering_answers = False
 
+#togetherai_models = ["Qwen/Qwen2-72B-Instruct", "microsoft/WizardLM-2-8x22B",
+#                     "mistralai/Mixtral-8x22B-Instruct-v0.1", "meta-llama/Llama-3-70b-chat-hf", "databricks/dbrx-instruct"]
 togetherai_models = ["Qwen/Qwen2-72B-Instruct", "microsoft/WizardLM-2-8x22B",
                      "mistralai/Mixtral-8x22B-Instruct-v0.1", "meta-llama/Llama-3-70b-chat-hf", "databricks/dbrx-instruct"]
 
@@ -109,6 +115,7 @@ if not perform_ensembling:
         ##########################################
 
         judgement_command = f"python gen_judgment.py --model-list {model_id} --parallel 2 --judge-model gpt-4"
+        print(f"Judgement Command: {judgement_command}")
         print("Generating judgements...")
         judgement_result = subprocess.run(judgement_command, shell=True, capture_output=True, text=True)
         #breakpoint()
