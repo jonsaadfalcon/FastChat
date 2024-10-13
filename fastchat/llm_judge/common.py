@@ -31,10 +31,10 @@ TIE_DELTA = 0.1
 NEED_REF_CATS = ["math", "reasoning", "coding", "arena-hard-200"]
 
 # Extract scores from judgments
-two_score_pattern = re.compile("\[\[(\d+\.?\d*),\s?(\d+\.?\d*)\]\]")
-two_score_pattern_backup = re.compile("\[(\d+\.?\d*),\s?(\d+\.?\d*)\]")
-one_score_pattern = re.compile("\[\[(\d+\.?\d*)\]\]")
-one_score_pattern_backup = re.compile("\[(\d+\.?\d*)\]")
+two_score_pattern = re.compile(r"\[\[(\d+\.?\d*),\s?(\d+\.?\d*)\]\]")
+two_score_pattern_backup = re.compile(r"\[(\d+\.?\d*),\s?(\d+\.?\d*)\]")
+one_score_pattern = re.compile(r"\[\[(\d+\.?\d*)\]\]")
+one_score_pattern_backup = re.compile(r"\[(\d+\.?\d*)\]")
 
 # Sampling temperature configs for
 temperature_config = {
